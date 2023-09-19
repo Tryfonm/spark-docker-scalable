@@ -1,4 +1,4 @@
-# Spark Docker Scalable
+## Spark Docker Scalable
 
 **Description:**
 
@@ -11,21 +11,13 @@ To launch the Spark cluster with a specific number of workers, use the following
 ```shell
 docker-compose up --scale spark-worker=<number_of_workers>
 ```
-Accessing Web Interfaces:
 
-    Spark History Server:
-        Access the Spark History Server UI at http://localhost:18080 to monitor the history of completed Spark applications.
+### Accessing Web Interfaces:
+Spark History Server:
+    Access the Spark History Server UI at http://localhost:18080 to monitor the history of completed Spark applications.
 
-    Spark UI:
-        During the runtime of a submitted Spark job, you can access the Spark UI at http://localhost:4040 to monitor the progress and details of the Spark application.
-
-Getting Started:
-
-    Clone this repository to your local machine.
-    Modify the docker-compose.yml file to suit your specific requirements.
-    Build and launch the Spark cluster with the desired number of workers.
-    Submit your Spark applications to the cluster.
+Spark UI:
+    During the runtime of a submitted Spark job, you can access the Spark UI at http://localhost:4040 to monitor the progress and details of the Spark application.
 
 Example Spark Job:
-
 The docker-compose.yml file includes a spark-app container that runs an example Spark job. You can replace this with your own Spark application or modify it to meet your needs.
