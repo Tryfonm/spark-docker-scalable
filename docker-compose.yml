@@ -1,0 +1,89 @@
+version: '3'
+
+networks:
+  spark-network:
+    driver: bridge
+
+services:
+  spark-master:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile
+    image: tryfonm/spark-node
+    ports:
+      - 8080:8080
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKLOAD=master
+    networks:
+      spark-network:
+    command: |
+      sh -c "/opt/spark/bin/spark-class org.apache.spark.deploy.master.Master \
+            --ip spark-master \
+            --port 7077 \
+            --webui-port 8080"
+
+  # Spark-worker | scale it with `docker-compose up --scale spark-worker=<worker_count>
+  spark-worker:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile
+    image: tryfonm/spark-node
+    depends_on:
+      - spark-master
+    ports:
+      - 8080  # dynamically maps 8080 to an available port on the host
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKLOAD=worker
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
+    networks:
+      spark-network:
+    command: |
+      sh -c "/opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker \
+            spark://spark-master:7077 \
+            --webui-port 8080"
+
+  # spark-history-server (UI) | accessed through localhost:18080
+  spark-history-server:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile
+    image: tryfonm/spark-node
+    ports:
+      - 18080:18080
+    volumes:
+      - ./event-logs:/opt/spark/event-logs/
+    networks:
+      - spark-network
+    command: "/opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer"
+
+  # Submitting a spark provided example | normally the `data` volume should be used
+  spark-app:
+    build:
+      context: ./dockerfiles
+      dockerfile: Dockerfile
+    image: tryfonm/spark-node
+    ports:
+      - 4040:4040
+    depends_on:
+      - spark-master
+      - spark-worker
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_WORKLOAD=submit
+    volumes:
+      - ./workspace:/opt/spark/workspace
+      - ./output:/opt/spark-output
+      - ./event-logs:/opt/spark/event-logs/
+    networks:
+      spark-network:
+    command: |
+      sh -c "/opt/spark/bin/spark-submit \
+            --master spark://spark-master:7077 \
+            --conf spark.eventLog.enabled=true \
+            --conf spark.eventLog.dir=/opt/spark/event-logs/ \
+            /opt/spark/examples/src/main/python/status_api_demo.py"
