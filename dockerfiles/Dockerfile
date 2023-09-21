@@ -1,9 +1,8 @@
 FROM openjdk:11.0.11-jre-slim-buster
 
 RUN apt update -y && apt upgrade -y 
-RUN apt install -y curl wget nano iproute2 iputils-ping software-properties-common ssh net-tools ca-certificates 
-RUN python3 python3-pip python3-numpy python3-matplotlib python3-scipy python3-pandas python3-simpy
-RUN update-alternatives --install "/usr/bin/python" "python" "$(which python3)" 1
+RUN apt install -y curl wget nano iproute2 iputils-ping software-properties-common ssh net-tools ca-certificates screen
+RUN apt install -y python3 python3-pip && update-alternatives --install "/usr/bin/python" "python" "$(which python3)" 1
 
 ENV SPARK_VERSION=3.0.2 \
     HADOOP_VERSION=3.2 \
